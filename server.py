@@ -1,20 +1,26 @@
-from flask import Flask, request, jsonify
-import os
+from flask import Flask, request
 
 app = Flask(__name__)
 
 @app.route('/api/device-info', methods=['POST'])
-def receive_device_info():
-    data = request.json
-    print("Received Device Info:", data)
-
-    # Save to file (optional)
+def device_info():
+    device_info = request.json
+    print(device_info)  # Logs device info to Render logs
+    
+    # Save received data to file
     with open("received_devices.txt", "a") as f:
-        f.write(str(data) + "\n")
+        f.write(str(device_info) + "\n")
+    
+    return "Data received", 200
 
-    return jsonify({"status": "success"})
+@app.route('/api/view-data', methods=['GET'])
+def view_data():
+    try:
+        with open("received_devices.txt", "r") as f:
+            content = f.read()
+        return "<pre>" + content + "</pre>"
+    except FileNotFoundError:
+        return "No data received yet.", 404
 
-# Use port assigned by Render, fallback to 5000
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=10000)
